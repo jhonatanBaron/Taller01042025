@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.9
+    container_name: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"  # Traefik Dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/traefik.yml:ro
+    networks:
+      - web
+
+  api-registro:
+    build: ./api-registro
+    container_name: api-registro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-registro.rule=Host(`localhost`) && PathPrefix(`/registro`)"
+      - "traefik.http.routers.api-registro.entrypoints=web"
+      # Basic Auth middleware: user 'admin' with password 'password'
+      - "traefik.http.middlewares.api-registro-basicauth.basicauth.users=admin:$$2a$$12$$TQl9hzq3VhMyVU8TBeI6hOd81GpQDHFOcWEAYlBIawA9G5vatdQHO"
+      - "traefik.http.routers.api-registro.middlewares=api-registro-basicauth"
+      - "traefik.http.services.api-registro.loadbalancer.server.port=3000"
+    networks:
+      - web
+
+  cliente-app1:
+    build: ./cliente-app
+    container_name: cliente-app1
+    environment:
+      - CLIENT_ID=app1
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cliente-app1.rule=Host(`localhost`) && PathPrefix(`/cliente/app1`)"
+      - "traefik.http.routers.cliente-app1.entrypoints=web"
+      - "traefik.http.middlewares.cliente-app1-strip.stripprefix.prefixes=/cliente/app1"
+      - "traefik.http.routers.cliente-app1.middlewares=cliente-app1-strip"
+      - "traefik.http.services.cliente-app1.loadbalancer.server.port=3000"
+    networks:
+      - web
+
+  cliente-app2:
+    build: ./cliente-app
+    container_name: cliente-app2
+    environment:
+      - CLIENT_ID=app2
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cliente-app2.rule=Host(`localhost`) && PathPrefix(`/cliente/app2`)"
+      - "traefik.http.routers.cliente-app2.entrypoints=web"
+      - "traefik.http.middlewares.cliente-app2-strip.stripprefix.prefixes=/cliente/app2"
+      - "traefik.http.routers.cliente-app2.middlewares=cliente-app2-strip"
+      - "traefik.http.services.cliente-app2.loadbalancer.server.port=3000"
+    networks:
+      - web
+
+  cliente-app3:
+    build: ./cliente-app
+    container_name: cliente-app3
+    environment:
+      - CLIENT_ID=app3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cliente-app3.rule=Host(`localhost`) && PathPrefix(`/cliente/app3`)"
+      - "traefik.http.routers.cliente-app3.entrypoints=web"
+      - "traefik.http.middlewares.cliente-app3-strip.stripprefix.prefixes=/cliente/app3"
+      - "traefik.http.routers.cliente-app3.middlewares=cliente-app3-strip"
+      - "traefik.http.services.cliente-app3.loadbalancer.server.port=3000"
+    networks:
+      - web
+
+  monitor:
+    image: nginx:alpine
+    container_name: monitor
+    volumes:
+      - ./monitor/index.html:/usr/share/nginx/html/index.html:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.monitor.rule=Host(`localhost`) && PathPrefix(`/monitor`)"
+      - "traefik.http.routers.monitor.entrypoints=web"
+      - "traefik.http.middlewares.monitor-strip.stripprefix.prefixes=/monitor"
+      - "traefik.http.routers.monitor.middlewares=monitor-strip"
+      - "traefik.http.services.monitor.loadbalancer.server.port=80"
+    networks:
+      - web
+
+networks:
+  web:
+    driver: bridge
