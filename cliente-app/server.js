@@ -5,14 +5,14 @@ const app = express();
 const PORT = 3000;
 const CLIENT_ID = process.env.CLIENT_ID || 'unknown-client';
 
-// Function to send a POST request to api-registro periodically
+// Function to send a POST request to api-reporte periodically
 const sendRequest = async () => {
   try {
-    const response = await axios.post('http://api-registro:3000/registro', {}, {
+    const response = await axios.post('http://api-reporte:3000/reporte', {}, {
       headers: { 'X-Service-ID': CLIENT_ID },
       auth: { username: 'admin', password: 'password' }
     });
-    console.log(`Response from api-registro: ${response.data}`);
+    console.log(`Response from api-reporte: ${response.data}`);
   } catch (error) {
     console.error(`Error sending request: ${error.message}`);
   }

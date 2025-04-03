@@ -14,14 +14,14 @@ const auth = (req, res, next) => {
   const validUser = 'admin';
   const validPass = 'password';
   if (!user || user.name !== validUser || user.pass !== validPass) {
-    res.set('WWW-Authenticate', 'Basic realm="api-registro"');
+    res.set('WWW-Authenticate', 'Basic realm="api-reporte"');
     return res.status(401).send('Authentication required.');
   }
   next();
 };
 
 // Protected endpoint to register a request
-app.post('/registro', auth, (req, res) => {
+app.post('/reporte', auth, (req, res) => {
   const serviceId = req.headers['x-service-id'];
   if (!serviceId) {
     return res.status(400).send('Missing X-Service-ID header.');
@@ -32,10 +32,10 @@ app.post('/registro', auth, (req, res) => {
 });
 
 // Public endpoint to view the current status
-app.get('/registro-status', (req, res) => {
+app.get('/reporte', (req, res) => {
   res.json(requestCounts);
 });
 
 app.listen(PORT, () => {
-  console.log(`api-registro listening on port ${PORT}`);
+  console.log(`api-reporte listening on port ${PORT}`);
 });
